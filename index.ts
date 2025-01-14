@@ -6,6 +6,7 @@ import abi from './abi.json'
 require('dotenv').config()
 
 const web3 = new Web3(process.env.EVM_RPC_URL)
+web3.eth.accounts.privateKeyToAccount(process.env.PRIVATE_KEY)
 const contract = new web3.eth.Contract(abi, process.env.DISTRIBUTION_CONTRACT)
 
 let startHeight = 0
@@ -64,6 +65,19 @@ async function fetchProof(timestamp: number) {
   }
 }
 
+async function claimRewards(
+  timestamp: number,
+  proposerIndex: number,
+  pubKey: string,
+  proposerIndexProof: string[],
+  pubkeyProof: string[],
+) {
+  const txId = await contract.methods
+    .distributeFor(timestamp, proposerIndex, pubKey, proposerIndexProof, pubkeyProof)
+    .send()
+  console.log(txId)
+}
+
 async function scanBlocks() {
   try {
     const endHeight = await getTargetHeight()
@@ -75,7 +89,14 @@ async function scanBlocks() {
           const claimable = await canClaim(Number(block.timestamp))
           if (claimable) {
             const proof = await fetchProof(Number(block.timestamp))
-            console.log(proof)
+            console.log(`Claiming rewards: ${block.number}`)
+            await claimRewards(
+              Number(block.timestamp),
+              proof.beacon_block_header.proposer_index,
+              proof.validator_pubkey,
+              proof.proposer_index_proof,
+              proof.validator_pubkey_proof,
+            )
           } else {
             console.log(`Block already claimed: ${block.number}`)
           }
@@ -90,6 +111,6 @@ async function scanBlocks() {
   }
 }
 
-cron.schedule('*/5 * * * *', async () => {
+cron.schedule('*/1 * * * *', async () => {
   scanBlocks()
 })
