@@ -1,6 +1,8 @@
 import { Web3 } from 'web3'
 import cron from 'node-cron'
 
+import type { PendingBlocks } from './types'
+
 require('dotenv').config()
 
 const web3 = new Web3(process.env.EVM_WEBSOCKET_URL)
