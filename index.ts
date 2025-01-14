@@ -19,7 +19,9 @@ async function startBlockSubscription() {
 
 async function fetchProof(timestamp: number) {
   try {
-    const res = fetch(`${process.env.BKIT_API}/bkit/v1/proof/block_proposer/t${timestamp}`)
+    const res = await fetch(`${process.env.BKIT_API}/bkit/v1/proof/block_proposer/t${timestamp}`)
+    const proof = await res.json()
+    console.log(JSON.stringify(proof, null, 2))
   } catch (e) {
     console.error(e.message ?? e)
   }
