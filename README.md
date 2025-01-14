@@ -1,0 +1,1 @@
+# Berachain Rewards Script
