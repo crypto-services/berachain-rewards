@@ -33,12 +33,30 @@ async function processBlocks() {
       const { hash, number, timestamp } = pendingBlocks[i]
       console.log(`Processing block ${number} ${hash} with timestamp ${timestamp}`)
       try {
-        const proof = await fetchProof(timestamp)
-        console.log(proof)
+        const isValid = await verifyBlock(number, hash)
+        if (isValid) {
+          const proof = await fetchProof(timestamp)
+          console.log(proof)
+        } else {
+          console.log(`Block is no longer in chain: ${number} ${hash}`)
+        }
       } catch (e) {
         console.log(e)
       }
     }
+  }
+}
+
+async function verifyBlock(number: number, hash: string): Promise<boolean> {
+  try {
+    const parent = await web3.eth.getBlock(number + 1)
+    if (parent.parentHash == hash) {
+      return true
+    } else {
+      return false
+    }
+  } catch (e) {
+    throw new Error(e)
   }
 }
 
