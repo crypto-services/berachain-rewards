@@ -6,8 +6,9 @@ import abi from './abi.json'
 require('dotenv').config()
 
 const web3 = new Web3(process.env.EVM_RPC_URL)
-web3.eth.accounts.wallet.add(web3.eth.accounts.privateKeyToAccount(process.env.PRIVATE_KEY))
-console.log(web3.eth.accounts[0])
+const signer = web3.eth.accounts.privateKeyToAccount(process.env.PRIVATE_KEY)
+web3.eth.accounts.wallet.add(signer)
+console.log(signer.address)
 const contract = new web3.eth.Contract(abi, process.env.DISTRIBUTION_CONTRACT)
 
 let startHeight = 0
@@ -75,7 +76,7 @@ async function claimRewards(
 ) {
   const txId = await contract.methods
     .distributeFor(timestamp, proposerIndex, pubKey, proposerIndexProof, pubkeyProof)
-    .send({ from: web3.eth.accounts[0] })
+    .send({ from: signer.address })
   console.log(txId)
 }
 
