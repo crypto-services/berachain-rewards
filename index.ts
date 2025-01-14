@@ -10,6 +10,28 @@ const contract = new web3.eth.Contract(abi, process.env.DISTRIBUTION_CONTRACT)
 
 let startHeight = 0
 
+async function canClaim(timestamp: number): Promise<boolean> {
+  try {
+    return await contract.methods.isTimestampActionable(timestamp).call()
+  } catch (e) {
+    throw new Error(e)
+  }
+}
+
+async function getTargetHeight(): Promise<number> {
+  try {
+    const currentHeight = await web3.eth.getBlockNumber()
+    const endHeight = Number(currentHeight) - 100
+    if (!startHeight) {
+      startHeight = Number(currentHeight) - Number(process.env.LOOK_BACK)
+    }
+    console.log(`Scanning from ${startHeight} to ${endHeight}`)
+    return endHeight
+  } catch (e) {
+    throw new Error(e)
+  }
+}
+
 async function verifyBlock(number: number, hash: string): Promise<boolean> {
   try {
     const parent = await web3.eth.getBlock(number + 1)
@@ -42,28 +64,6 @@ async function fetchProof(timestamp: number) {
   }
 }
 
-async function canClaim(timestamp: number): Promise<boolean> {
-  try {
-    return await contract.methods.isTimestampActionable(timestamp).call()
-  } catch (e) {
-    throw new Error(e)
-  }
-}
-
-async function getTargetHeight(): Promise<number> {
-  try {
-    const currentHeight = await web3.eth.getBlockNumber()
-    const endHeight = Number(currentHeight) - 100
-    if (!startHeight) {
-      startHeight = Number(currentHeight) - Number(process.env.LOOK_BACK)
-    }
-    console.log(`Scanning from ${startHeight} to ${endHeight}`)
-    return endHeight
-  } catch (e) {
-    throw new Error(e)
-  }
-}
-
 async function scanBlocks() {
   try {
     const endHeight = await getTargetHeight()
@@ -86,7 +86,7 @@ async function scanBlocks() {
     }
     startHeight = endHeight
   } catch (e) {
-    console.log(e)
+    console.error(e)
   }
 }
 
