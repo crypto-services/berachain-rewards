@@ -1,49 +1,38 @@
 import { Web3 } from 'web3'
 import cron from 'node-cron'
 
-import type { PendingBlocks } from './types'
 require('dotenv').config()
 
-const web3 = new Web3(process.env.EVM_WEBSOCKET_URL)
+const web3 = new Web3(process.env.EVM_RPC_URL)
 
-const pendingBlocks: PendingBlocks = []
+let startHeight = 0
 
-async function startBlockSubscription() {
-  const blockSubscription = await web3.eth.subscribe('newBlockHeaders')
-
-  blockSubscription.on('data', async blockhead => {
-    if (blockhead.miner === process.env.TARGET_COINBASE.toLowerCase()) {
-      console.log(
-        `Found block mined by target: ${blockhead.number} with timestamp ${blockhead.timestamp}`,
-      )
-      pendingBlocks.push({
-        hash: blockhead.hash,
-        number: Number(blockhead.number),
-        timestamp: Number(blockhead.timestamp),
-      })
+async function scanBlocks() {
+  try {
+    const currentHeight = await web3.eth.getBlockNumber()
+    const endHeight = Number(currentHeight) - 100
+    if (!startHeight) {
+      startHeight = Number(currentHeight) - Number(process.env.LOOK_BACK)
     }
-  })
-}
+    console.log(`Scanning from ${startHeight} to ${endHeight}`)
 
-async function processBlocks() {
-  console.log('Processing outstanding blocks')
-  const nowSecond = Math.floor(Date.now() / 1000)
-  for (let i = 0; i < pendingBlocks.length; i++) {
-    if (nowSecond - pendingBlocks[i].timestamp > 60) {
-      const { hash, number, timestamp } = pendingBlocks[i]
-      console.log(`Processing block ${number} ${hash} with timestamp ${timestamp}`)
-      try {
-        const isValid = await verifyBlock(number, hash)
+    for (let i = startHeight; i < endHeight; i++) {
+      const block = await web3.eth.getBlock(i)
+      if (block.miner === process.env.TARGET_COINBASE.toLowerCase()) {
+        const isValid = await verifyBlock(Number(block.number), block.hash)
         if (isValid) {
-          const proof = await fetchProof(timestamp)
+          console.log(
+            `Found block mined by target: ${block.number} with timestamp ${block.timestamp}`,
+          )
+          const proof = await fetchProof(Number(block.timestamp))
           console.log(proof)
         } else {
-          console.log(`Block is no longer in chain: ${number} ${hash}`)
+          console.log(`Block is no longer in chain: ${Number(block.number)} ${block.hash}`)
         }
-      } catch (e) {
-        console.log(e)
       }
     }
+  } catch (e) {
+    console.log(e)
   }
 }
 
@@ -79,8 +68,6 @@ async function fetchProof(timestamp: number) {
   }
 }
 
-cron.schedule('*/1 * * * *', async () => {
-  processBlocks()
+cron.schedule('*/10 * * * *', async () => {
+  scanBlocks()
 })
-
-startBlockSubscription()
