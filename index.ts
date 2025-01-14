@@ -22,7 +22,7 @@ async function canClaim(timestamp: number): Promise<boolean> {
 async function getTargetHeight(): Promise<number> {
   try {
     const currentHeight = await web3.eth.getBlockNumber()
-    const endHeight = Number(currentHeight) - 100
+    const endHeight = Number(currentHeight) - 2
     if (!startHeight) {
       startHeight = Number(currentHeight) - Number(process.env.LOOK_BACK)
     }
