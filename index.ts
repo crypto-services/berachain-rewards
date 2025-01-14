@@ -12,6 +12,7 @@ async function startBlockSubscription() {
       console.log(
         `Found block mined by target: ${blockhead.number} with timestamp ${blockhead.timestamp}`,
       )
+      await timeout(10000)
       const proof = await fetchProof(Number(blockhead.timestamp))
     }
   })
@@ -25,6 +26,10 @@ async function fetchProof(timestamp: number) {
   } catch (e) {
     console.error(e.message ?? e)
   }
+}
+
+function timeout(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms))
 }
 
 startBlockSubscription()
