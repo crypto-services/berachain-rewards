@@ -111,6 +111,6 @@ async function scanBlocks() {
   }
 }
 
-cron.schedule('*/20 * * * * *', async () => {
+cron.schedule('*/10 * * * * *', async () => {
   scanBlocks()
 })
