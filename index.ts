@@ -7,6 +7,7 @@ require('dotenv').config()
 
 const web3 = new Web3(process.env.EVM_RPC_URL)
 web3.eth.accounts.privateKeyToAccount(process.env.PRIVATE_KEY)
+console.log(web3.eth.accounts[0])
 const contract = new web3.eth.Contract(abi, process.env.DISTRIBUTION_CONTRACT)
 
 let startHeight = 0
@@ -74,7 +75,7 @@ async function claimRewards(
 ) {
   const txId = await contract.methods
     .distributeFor(timestamp, proposerIndex, pubKey, proposerIndexProof, pubkeyProof)
-    .send()
+    .send({ from: web3.eth.accounts[0] })
   console.log(txId)
 }
 
