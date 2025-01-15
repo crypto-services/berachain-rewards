@@ -37,13 +37,19 @@ PRIVATE_KEY=0x
 EXPLORER_URL=https://bartio.beratrail.io
 ```
 
-| **Name**                | **Description**                                                                        |
-| ----------------------- | -------------------------------------------------------------------------------------- |
-| `EVM_RPC_URL`           | The URL of your EVM RPC.                                                               |
-| `BKIT_API`              | The URL of your Beacon Kit API.                                                        |
-| `TARGET_COINBASE`       | The rewards address for your validator as set in your config.                          |
-| `DISTRIBUTION_CONTRACT` | The address of the distribution contract.                                              |
-| `DISTANCE_FROM_HEAD`    | The script will scan up to latest block height - `DISTANCE_FROM_HEAD` with each round. |
-| `LOOK_BACK`             | The maximum number of blocks to look back when starting the script.                    |
-| `PRIVATE_KEY`           | Private key for submitting transactions (should start with 0x)                         |
-| `EXPLORER_URL`          | The explorer url to use when creating links to submitted transactions                  |
+| **Name**                | **Description**                                                                                                                                                                            |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `EVM_RPC_URL`           | The URL of your EVM RPC.                                                                                                                                                                   |
+| `BKIT_API`              | The URL of your Beacon Kit API.                                                                                                                                                            |
+| `TARGET_COINBASE`       | The rewards address for your validator as set in your config.                                                                                                                              |
+| `DISTRIBUTION_CONTRACT` | The address of the distribution contract.                                                                                                                                                  |
+| `DISTANCE_FROM_HEAD`    | The script will scan up to latest block height - `DISTANCE_FROM_HEAD` with each round. Setting this too low will compete with the foundation distributor resulting in failed transactions. |
+| `LOOK_BACK`             | The maximum number of blocks to look back when starting the script. Rewards older than 8191 blocks cannot be claimed.                                                                      |
+| `PRIVATE_KEY`           | Private key for submitting transactions starting with 0x. Can be any address with enough funds for gas.                                                                                    |
+| `EXPLORER_URL`          | The explorer url to use when creating links to submitted transactions.                                                                                                                     |
+
+### Run the script
+
+```sh
+npm start
+```
