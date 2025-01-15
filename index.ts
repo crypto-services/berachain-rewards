@@ -21,7 +21,7 @@ async function fetchProof(timestamp: number) {
     ) {
       return proof
     } else {
-      throw new Error(`Invalid response from block_proposer endpoint: ${proof}`)
+      throw new Error(`Invalid response from block_proposer endpoint`)
     }
   } catch (e) {
     throw new Error(e)
