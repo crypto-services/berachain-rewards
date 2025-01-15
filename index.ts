@@ -99,7 +99,6 @@ async function scanBlocks() {
     for (let i = startHeight; i < endHeight; i++) {
       const targetHash = await isTargetBlock(i)
       if (!!!targetHash) continue
-
       const timestamp = await fetchChildTimestamp(i, targetHash)
       const claimable = await canClaim(timestamp)
       if (claimable) {
@@ -122,6 +121,6 @@ async function scanBlocks() {
   }
 }
 
-cron.schedule('*/10 * * * * *', async () => {
+cron.schedule('*/120 * * * * *', async () => {
   scanBlocks()
 })
