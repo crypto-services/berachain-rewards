@@ -1,8 +1,6 @@
 import cron from 'node-cron'
 import { web3, contract, signer } from './web3'
 
-require('dotenv').config()
-
 let startHeight = 0
 
 async function canClaim(timestamp: number): Promise<boolean> {
