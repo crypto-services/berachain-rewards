@@ -1,15 +1,7 @@
-import { Web3 } from 'web3'
 import cron from 'node-cron'
-
-import abi from './abi.json'
+import { web3, contract, signer } from './web3'
 
 require('dotenv').config()
-
-const web3 = new Web3(process.env.EVM_RPC_URL)
-const signer = web3.eth.accounts.privateKeyToAccount(process.env.PRIVATE_KEY)
-web3.eth.accounts.wallet.add(signer)
-console.log(signer.address)
-const contract = new web3.eth.Contract(abi, process.env.DISTRIBUTION_CONTRACT)
 
 let startHeight = 0
 
@@ -41,7 +33,7 @@ async function fetchChildTimestamp(number: number, hash: string): Promise<number
     if (child.parentHash === hash) {
       return Number(child.timestamp)
     } else {
-      return 0
+      throw new Error('Invalid parent block')
     }
   } catch (e) {
     throw new Error(e)
@@ -63,7 +55,7 @@ async function fetchProof(timestamp: number) {
       throw new Error(`Invalid response from block_proposer endpoint: ${proof}`)
     }
   } catch (e) {
-    console.error(e.message ?? e)
+    throw new Error(e)
   }
 }
 
@@ -80,31 +72,40 @@ async function claimRewards(
   console.log(txId)
 }
 
+async function isTargetBlock(number: number): Promise<string> {
+  try {
+    const block = await web3.eth.getBlock(number)
+    if (block.miner === process.env.TARGET_COINBASE.toLowerCase()) {
+      return block.hash
+    } else {
+      return ''
+    }
+  } catch (e) {
+    throw new Error(e)
+  }
+}
+
 async function scanBlocks() {
   try {
     const endHeight = await getTargetHeight()
     for (let i = startHeight; i < endHeight; i++) {
-      const block = await web3.eth.getBlock(i)
-      if (block.miner === process.env.TARGET_COINBASE.toLowerCase()) {
-        const timestamp = await fetchChildTimestamp(Number(block.number), block.hash)
-        if (timestamp) {
-          const claimable = await canClaim(timestamp)
-          if (claimable) {
-            const proof = await fetchProof(timestamp)
-            console.log(`Claiming rewards: ${block.number}`)
-            await claimRewards(
-              timestamp,
-              proof.beacon_block_header.proposer_index,
-              proof.validator_pubkey,
-              proof.proposer_index_proof,
-              proof.validator_pubkey_proof,
-            )
-          } else {
-            console.log(`Block already claimed: ${block.number}`)
-          }
-        } else {
-          console.log(`Block has no child: ${Number(block.number)} ${block.hash}`)
-        }
+      const targetHash = await isTargetBlock(i)
+      if (!!!targetHash) continue
+
+      const timestamp = await fetchChildTimestamp(i, targetHash)
+      const claimable = await canClaim(timestamp)
+      if (claimable) {
+        const proof = await fetchProof(timestamp)
+        console.log(`Claiming rewards: ${i}`)
+        await claimRewards(
+          timestamp,
+          proof.beacon_block_header.proposer_index,
+          proof.validator_pubkey,
+          proof.proposer_index_proof,
+          proof.validator_pubkey_proof,
+        )
+      } else {
+        console.log(`Block already claimed: ${i}`)
       }
     }
     startHeight = endHeight
