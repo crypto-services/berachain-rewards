@@ -35,13 +35,13 @@ async function getTargetHeight(): Promise<number> {
   }
 }
 
-async function verifyBlock(number: number, hash: string): Promise<boolean> {
+async function fetchChildTimestamp(number: number, hash: string): Promise<number> {
   try {
-    const parent = await web3.eth.getBlock(number + 1)
-    if (parent.parentHash === hash) {
-      return true
+    const child = await web3.eth.getBlock(number + 1)
+    if (child.parentHash === hash) {
+      return Number(child.timestamp)
     } else {
-      return false
+      return 0
     }
   } catch (e) {
     throw new Error(e)
@@ -86,14 +86,14 @@ async function scanBlocks() {
     for (let i = startHeight; i < endHeight; i++) {
       const block = await web3.eth.getBlock(i)
       if (block.miner === process.env.TARGET_COINBASE.toLowerCase()) {
-        const isValid = await verifyBlock(Number(block.number), block.hash)
-        if (isValid) {
-          const claimable = await canClaim(Number(block.timestamp))
+        const timestamp = await fetchChildTimestamp(Number(block.number), block.hash)
+        if (timestamp) {
+          const claimable = await canClaim(timestamp)
           if (claimable) {
-            const proof = await fetchProof(Number(block.timestamp))
+            const proof = await fetchProof(timestamp)
             console.log(`Claiming rewards: ${block.number}`)
             await claimRewards(
-              Number(block.timestamp),
+              timestamp,
               proof.beacon_block_header.proposer_index,
               proof.validator_pubkey,
               proof.proposer_index_proof,
@@ -103,7 +103,7 @@ async function scanBlocks() {
             console.log(`Block already claimed: ${block.number}`)
           }
         } else {
-          console.log(`Block is no longer in chain: ${Number(block.number)} ${block.hash}`)
+          console.log(`Block has no child: ${Number(block.number)} ${block.hash}`)
         }
       }
     }
