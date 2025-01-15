@@ -11,7 +11,7 @@ async function canClaim(timestamp: number): Promise<boolean> {
   }
 }
 
-async function getTargetHeight(): Promise<number> {
+async function setScanRange(): Promise<number> {
   try {
     const currentHeight = await web3.eth.getBlockNumber()
     const endHeight = Number(currentHeight) - 0
@@ -64,10 +64,10 @@ async function claimRewards(
   proposerIndexProof: string[],
   pubkeyProof: string[],
 ) {
-  const txId = await contract.methods
+  const receipt = await contract.methods
     .distributeFor(timestamp, proposerIndex, pubKey, proposerIndexProof, pubkeyProof)
     .send({ from: signer.address })
-  console.log(txId)
+  console.log(`Tx confirmed: ${receipt.transactionHash}`)
 }
 
 async function isTargetBlock(number: number): Promise<string> {
@@ -85,7 +85,7 @@ async function isTargetBlock(number: number): Promise<string> {
 
 async function scanBlocks() {
   try {
-    const endHeight = await getTargetHeight()
+    const endHeight = await setScanRange()
     for (let i = startHeight; i < endHeight; i++) {
       const targetHash = await isTargetBlock(i)
       if (!!!targetHash) continue
@@ -94,7 +94,7 @@ async function scanBlocks() {
       const claimable = await canClaim(timestamp)
       if (claimable) {
         const proof = await fetchProof(timestamp)
-        console.log(`Claiming rewards: ${i}`)
+        console.log(`Claiming rewards for block: ${i}`)
         await claimRewards(
           timestamp,
           proof.beacon_block_header.proposer_index,
@@ -108,7 +108,9 @@ async function scanBlocks() {
     }
     startHeight = endHeight
   } catch (e) {
-    console.error(e)
+    console.error(
+      e.receipt ? `Tx reverted: ${e.receipt.transactionHash}` : e.message ? e.message : e,
+    )
   }
 }
 
