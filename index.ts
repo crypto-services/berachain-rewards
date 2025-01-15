@@ -121,6 +121,6 @@ async function scanBlocks() {
   }
 }
 
-cron.schedule('*/120 * * * * *', async () => {
+cron.schedule(`*/${process.env.POLLING_INTERVAL_SECONDS} * * * * *`, async () => {
   scanBlocks()
 })
