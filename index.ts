@@ -135,7 +135,7 @@ async function claimRewards(
 /**
  * @description Iterates over the target range of blocks searching for rewards to claim.
  *
- * @dev If any of the request fail or the beacon kit api doesn't have proofs start height it not updated and blocks will be scanned again in the next round.
+ * @dev If any of the requests fail or the beacon kit api doesn't have the proofs yet startHeight is not updated and blocks will be scanned again in the next round.
  */
 async function scanBlocks() {
   try {
