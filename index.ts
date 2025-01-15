@@ -64,10 +64,20 @@ async function claimRewards(
   proposerIndexProof: string[],
   pubkeyProof: string[],
 ) {
-  const receipt = await contract.methods
-    .distributeFor(timestamp, proposerIndex, pubKey, proposerIndexProof, pubkeyProof)
-    .send({ from: signer.address })
-  console.log(`Tx confirmed: ${receipt.transactionHash}`)
+  try {
+    const receipt = await contract.methods
+      .distributeFor(timestamp, proposerIndex, pubKey, proposerIndexProof, pubkeyProof)
+      .send({ from: signer.address })
+    console.log(`Tx confirmed: ${process.env.EXPLORER_URL}/tx/${receipt.transactionHash}`)
+  } catch (e) {
+    console.error(
+      e.receipt
+        ? `Tx reverted: ${process.env.EXPLORER_URL}/tx/${e.receipt.transactionHash}`
+        : e.message
+        ? e.message
+        : e,
+    )
+  }
 }
 
 async function isTargetBlock(number: number): Promise<string> {
@@ -93,8 +103,8 @@ async function scanBlocks() {
       const timestamp = await fetchChildTimestamp(i, targetHash)
       const claimable = await canClaim(timestamp)
       if (claimable) {
-        const proof = await fetchProof(timestamp)
         console.log(`Claiming rewards for block: ${i}`)
+        const proof = await fetchProof(timestamp)
         await claimRewards(
           timestamp,
           proof.beacon_block_header.proposer_index,
@@ -108,9 +118,7 @@ async function scanBlocks() {
     }
     startHeight = endHeight
   } catch (e) {
-    console.error(
-      e.receipt ? `Tx reverted: ${e.receipt.transactionHash}` : e.message ? e.message : e,
-    )
+    console.error(e.message ?? e)
   }
 }
 
