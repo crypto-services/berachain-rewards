@@ -1,9 +1,9 @@
 {
-  "name": "treasury-bera-rewards",
+  "name": "bera-rewards",
   "version": "0.1.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "ts-node index.ts"
   },
   "keywords": [],
   "author": "Hossein Khoshtaghaza <hossein.khoshtaghaza@republiccrypto.com> (https://republiccrypto.com/)",
