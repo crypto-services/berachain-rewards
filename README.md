@@ -26,17 +26,7 @@ nano .env
 
 ### Update .env values
 
-```sh
-EVM_RPC_URL=http://localhost:8545
-BKIT_API=http://localhost:3500
-TARGET_COINBASE=0x0000000000000000000000000000000000000000
-DISTRIBUTION_CONTRACT=0x211bE45338B7C6d5721B5543Eb868547088Aca39
-DISTANCE_FROM_HEAD=100
-LOOK_BACK=8191
-PRIVATE_KEY=0x
-EXPLORER_URL=https://bartio.beratrail.io
-POLLING_INTERVAL_SECONDS=60
-```
+Update the .env file with the values for your validator:
 
 | **Name**                   | **Description**                                                                                                                                                                            |
 | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
